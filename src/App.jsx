@@ -88,12 +88,6 @@ const songs = [
   },
 ]
 
-const memories = [
-  { number: '01', title: 'The laughs', icon: '✦' },
-  { number: '02', title: 'The little things', icon: '♡' },
-  { number: '03', title: 'The memories', icon: '☀' },
-]
-
 function App() {
   const [opened, setOpened] = useState(false)
   const [started, setStarted] = useState(false)
@@ -112,10 +106,6 @@ function App() {
 
   /*
    * Which photo each scrapbook slot currently shows.
-   *
-   * When there are fewer photos than slots, they repeat
-   * (slot 1 → photo 1, slot 4 → photo 1 again, ...) so
-   * every slot always has an image.
    */
   const [photoIndices, setPhotoIndices] = useState(() =>
     Array.from(
@@ -128,8 +118,7 @@ function App() {
   )
 
   /*
-   * How many times each slot has tried to load, so the
-   * missing-file fallback gives up instead of looping.
+   * How many times each slot has tried to load.
    */
   const photoAttempts = useRef(
     Array(SCRAPBOOK_SLOTS).fill(0)
@@ -151,9 +140,6 @@ function App() {
 
   /*
    * Actually start the currently selected song.
-   *
-   * For Dil Kya Kare we start at 4:20.
-   * Every other song starts at 0.
    */
   const playCurrentSong = async (fromBeginning = false) => {
     const audio = audioRef.current
@@ -194,10 +180,6 @@ function App() {
 
     if (!audio) return
 
-    /*
-     * The user has just clicked the button,
-     * so this is the best moment for browser audio permission.
-     */
     const startAudio = async () => {
       try {
         if (audio.readyState >= 1) {
@@ -327,10 +309,6 @@ function App() {
           : 0
       )
 
-      /*
-       * If this is the first song,
-       * restore the 4:20 starting point.
-       */
       if (currentSong === 0 && started) {
         const startTime = OPENING_START_TIME
 
@@ -417,8 +395,7 @@ function App() {
 
   /*
    * Whenever the selected song changes,
-   * update the audio source and automatically play it
-   * if the experience has already started.
+   * update the audio source and automatically play it.
    */
   useEffect(() => {
     const audio = audioRef.current
@@ -537,8 +514,7 @@ function App() {
 
   /*
    * If a photo file is missing or fails to load,
-   * swap in the next available photo so the slot
-   * is never empty.
+   * swap in the next available photo.
    */
   const handlePhotoError = (slotIndex) => {
     if (MEDIA.photos.length < 2) return
@@ -574,7 +550,6 @@ function App() {
         preload="auto"
       />
 
-
       {/* =====================================================
           LAUNCH SCREEN
       ===================================================== */}
@@ -602,7 +577,6 @@ function App() {
         </section>
       )}
 
-
       {/* =====================================================
           SOUND PERMISSION
       ===================================================== */}
@@ -618,7 +592,6 @@ function App() {
           Tap to start the song
         </button>
       )}
-
 
       {/* =====================================================
           COUNTDOWN
@@ -660,130 +633,109 @@ function App() {
         </section>
       )}
 
-
       {/* =====================================================
           BIRTHDAY REVEAL
       ===================================================== */}
 
       {showBirthday && (
-  <section className="birthday-reveal" aria-live="polite">
-    <div className="birthday-sticker-transition" aria-hidden="true">
+        <section
+          className="birthday-reveal"
+          aria-live="polite"
+        >
 
-  <img
-    className="transition-sticker sticker-clover"
-    src={MEDIA.stickers.clover}
-    alt=""
-  />
+          <div
+            className="birthday-sticker-transition"
+            aria-hidden="true"
+          >
 
-  <img
-    className="transition-sticker sticker-white-flower"
-    src={MEDIA.stickers.whiteFlower}
-    alt=""
-  />
+            <img
+              className="transition-sticker sticker-clover"
+              src={MEDIA.stickers.clover}
+              alt=""
+            />
 
-  <img
-    className="transition-sticker sticker-eye"
-    src={MEDIA.stickers.evilEye}
-    alt=""
-  />
+            <img
+              className="transition-sticker sticker-white-flower"
+              src={MEDIA.stickers.whiteFlower}
+              alt=""
+            />
 
-  <img
-    className="transition-sticker sticker-rose"
-    src={MEDIA.stickers.rose}
-    alt=""
-  />
+            <img
+              className="transition-sticker sticker-eye"
+              src={MEDIA.stickers.evilEye}
+              alt=""
+            />
 
-</div>
+            <img
+              className="transition-sticker sticker-rose"
+              src={MEDIA.stickers.rose}
+              alt=""
+            />
 
-    {showBirthday && (
-  <section className="birthday-reveal" aria-live="polite">
+          </div>
 
-    {/* STICKER TRANSITION */}
-    <div
-      className="birthday-sticker-transition"
-      aria-hidden="true"
-    >
-      <img
-        className="transition-sticker sticker-clover"
-        src={MEDIA.stickers.clover}
-        alt=""
-      />
+          {/* SCRAPBOOK */}
 
-      <img
-        className="transition-sticker sticker-white-flower"
-        src={MEDIA.stickers.whiteFlower}
-        alt=""
-      />
+          <div className="birthday-scrapbook">
 
-      <img
-        className="transition-sticker sticker-eye"
-        src={MEDIA.stickers.evilEye}
-        alt=""
-      />
+            <img
+              className="birthday-template"
+              src={MEDIA.template}
+              alt="Birthday scrapbook"
+            />
 
-      <img
-        className="transition-sticker sticker-rose"
-        src={MEDIA.stickers.rose}
-        alt=""
-      />
-    </div>
+            {MEDIA.photos.length > 0 &&
+              Array.from(
+                { length: SCRAPBOOK_SLOTS },
+                (_, slotIndex) => (
 
-    {/* SCRAPBOOK */}
-    <div className="birthday-scrapbook">
+                  <div
+                    className={`birthday-photo photo-${
+                      slotIndex + 1
+                    }`}
+                    key={slotIndex}
+                  >
 
-      <img
-        className="birthday-template"
-        src={MEDIA.template}
-        alt="Birthday scrapbook"
-      />
+                    <img
+                      src={
+                        MEDIA.photos[
+                          photoIndices[slotIndex]
+                        ]
+                      }
+                      alt=""
+                      onError={() =>
+                        handlePhotoError(slotIndex)
+                      }
+                    />
 
-      {MEDIA.photos.length > 0 &&
-        Array.from(
-          { length: SCRAPBOOK_SLOTS },
-          (_, slotIndex) => (
-            <div
-              className={`birthday-photo photo-${
-                slotIndex + 1
-              }`}
-              key={slotIndex}
-            >
-              <img
-                src={
-                  MEDIA.photos[
-                    photoIndices[slotIndex]
-                  ]
-                }
-                alt=""
-                onError={() =>
-                  handlePhotoError(slotIndex)
-                }
-              />
-            </div>
-          )
-        )}
+                  </div>
 
-    </div>
+                )
+              )}
 
-    {/* EXISTING SPARKLES */}
-    <div
-      className="birthday-sparkles"
-      aria-hidden="true"
-    >
-      {Array.from(
-        { length: 18 },
-        (_, index) => (
-          <i key={index} />
-        )
+          </div>
+
+          {/* EXISTING SPARKLES */}
+
+          <div
+            className="birthday-sparkles"
+            aria-hidden="true"
+          >
+
+            {Array.from(
+              { length: 18 },
+              (_, index) => (
+                <i key={index} />
+              )
+            )}
+
+          </div>
+
+        </section>
       )}
-    </div>
 
-  </section>
-)}
-  </section>
-)}
       <div className="ambient ambient-one" />
       <div className="ambient ambient-two" />
-
 
       {/* =====================================================
           NAV
@@ -801,7 +753,6 @@ function App() {
         </span>
 
       </nav>
-
 
       {/* =====================================================
           HERO
@@ -879,7 +830,6 @@ function App() {
 
       </section>
 
-
       {/* =====================================================
           MUSIC
       ===================================================== */}
@@ -915,7 +865,6 @@ function App() {
 
           </div>
 
-
           <div className="playlist">
 
             {songs.map((item, index) => (
@@ -943,7 +892,6 @@ function App() {
 
                 </span>
 
-
                 <span className="song-info">
 
                   <strong>
@@ -955,7 +903,6 @@ function App() {
                   </small>
 
                 </span>
-
 
                 <span className="song-arrow">
 
@@ -974,7 +921,6 @@ function App() {
 
         </div>
 
-
         {/* PLAYER */}
 
         <div className="music-player">
@@ -988,7 +934,6 @@ function App() {
             aria-hidden="true"
           />
 
-
           <div className="player-cover">
 
             <img
@@ -997,7 +942,6 @@ function App() {
             />
 
           </div>
-
 
           <div className="player-details">
 
@@ -1012,7 +956,6 @@ function App() {
             <p>
               {song.artist}
             </p>
-
 
             <input
               aria-label="Song progress"
@@ -1041,7 +984,6 @@ function App() {
               }}
             />
 
-
             <div className="time-row">
 
               <span>
@@ -1063,7 +1005,6 @@ function App() {
 
             </div>
 
-
             <div className="player-controls">
 
               <button
@@ -1080,14 +1021,12 @@ function App() {
                 ⤨
               </button>
 
-
               <button
                 aria-label="Previous"
                 onClick={previousSong}
               >
                 ◀
               </button>
-
 
               <button
                 className="play-button"
@@ -1105,14 +1044,12 @@ function App() {
                   : '▶'}
               </button>
 
-
               <button
                 aria-label="Next"
                 onClick={nextSong}
               >
                 ▶
               </button>
-
 
               <button
                 className={
@@ -1135,80 +1072,6 @@ function App() {
         </div>
 
       </section>
-
-
-      {/* =====================================================
-          MEMORIES
-      ===================================================== */}
-
-      <section className="memory-section">
-
-        <div className="section-heading">
-
-          <p className="eyebrow">
-            A FEW FAVOURITES
-          </p>
-
-          <h2>
-            Moments worth
-            <br />
-            <em>
-              keeping forever.
-            </em>
-          </h2>
-
-        </div>
-
-
-        <div className="memory-grid">
-
-          {memories.map(
-            (memory, index) => (
-
-              <article
-                className={`memory-card card-${
-                  index + 1
-                }`}
-                key={
-                  memory.number
-                }
-              >
-
-                <div className="photo-placeholder">
-
-                  <span>
-                    {memory.icon}
-                  </span>
-
-                  <small>
-                    Add photo{''}
-                    {memory.number}
-                  </small>
-
-                </div>
-
-
-                <div className="card-caption">
-
-                  <span>
-                    {memory.number}
-                  </span>
-
-                  <p>
-                    {memory.title}
-                  </p>
-
-                </div>
-
-              </article>
-
-            )
-          )}
-
-        </div>
-
-      </section>
-
 
       {/* =====================================================
           LETTER
@@ -1239,7 +1102,6 @@ function App() {
           </em>
         </h2>
 
-
         <div className="letter-card">
 
           <span className="quote">
@@ -1262,7 +1124,6 @@ function App() {
         </div>
 
       </section>
-
 
       {/* =====================================================
           FOOTER
