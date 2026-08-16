@@ -1251,8 +1251,12 @@ em {
 }
 
 .music-section::before {
+  /*
+   * Image comes from src/media.js → MEDIA.sky.
+   * The fallback keeps it working even before React runs.
+   */
   background:
-    url('/media/music-section-sky.jpeg')
+    var(--media-sky, url('/media/music-section-sky.jpeg'))
     center 48% / cover no-repeat;
 }
 

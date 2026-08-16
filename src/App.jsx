@@ -1,7 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
 import './App.css'
+import { MEDIA } from './media.js'
 
 const OPENING_START_TIME = 260
+
+/* Number of photo slots on the scrapbook */
+const SCRAPBOOK_SLOTS = 5
 
 const songs = [
   {
@@ -105,6 +109,31 @@ function App() {
   const [duration, setDuration] = useState(0)
   const [needsSoundTap, setNeedsSoundTap] = useState(false)
   const [heroScroll, setHeroScroll] = useState(0)
+
+  /*
+   * Which photo each scrapbook slot currently shows.
+   *
+   * When there are fewer photos than slots, they repeat
+   * (slot 1 → photo 1, slot 4 → photo 1 again, ...) so
+   * every slot always has an image.
+   */
+  const [photoIndices, setPhotoIndices] = useState(() =>
+    Array.from(
+      { length: SCRAPBOOK_SLOTS },
+      (_, slotIndex) =>
+        MEDIA.photos.length === 0
+          ? 0
+          : slotIndex % MEDIA.photos.length
+    )
+  )
+
+  /*
+   * How many times each slot has tried to load, so the
+   * missing-file fallback gives up instead of looping.
+   */
+  const photoAttempts = useRef(
+    Array(SCRAPBOOK_SLOTS).fill(0)
+  )
 
   const audioRef = useRef(null)
 
@@ -506,6 +535,32 @@ function App() {
       })
   }
 
+  /*
+   * If a photo file is missing or fails to load,
+   * swap in the next available photo so the slot
+   * is never empty.
+   */
+  const handlePhotoError = (slotIndex) => {
+    if (MEDIA.photos.length < 2) return
+
+    const attempts = photoAttempts.current
+
+    attempts[slotIndex] += 1
+
+    if (attempts[slotIndex] >= MEDIA.photos.length) {
+      return
+    }
+
+    setPhotoIndices((current) => {
+      const next = [...current]
+
+      next[slotIndex] =
+        (next[slotIndex] + 1) % MEDIA.photos.length
+
+      return next
+    })
+  }
+
   return (
     <main>
 
@@ -532,7 +587,7 @@ function App() {
             aria-hidden="true"
           />
 
-          <p>FOR DIMPLE, ON HER DAY</p>
+          <p>FOR PREET, ON HER DAY</p>
 
           <button onClick={startExperience}>
             <span>✦</span>
@@ -616,25 +671,25 @@ function App() {
 
   <img
     className="transition-sticker sticker-clover"
-    src="/media/clover.png"
+    src={MEDIA.stickers.clover}
     alt=""
   />
 
   <img
     className="transition-sticker sticker-white-flower"
-    src="/media/white-flower.png"
+    src={MEDIA.stickers.whiteFlower}
     alt=""
   />
 
   <img
     className="transition-sticker sticker-eye"
-    src="/media/evil-eye.png"
+    src={MEDIA.stickers.evilEye}
     alt=""
   />
 
   <img
     className="transition-sticker sticker-rose"
-    src="/media/rose.png"
+    src={MEDIA.stickers.rose}
     alt=""
   />
 
@@ -650,25 +705,25 @@ function App() {
     >
       <img
         className="transition-sticker sticker-clover"
-        src="/media/clover.png"
+        src={MEDIA.stickers.clover}
         alt=""
       />
 
       <img
         className="transition-sticker sticker-white-flower"
-        src="/media/white-flower.png"
+        src={MEDIA.stickers.whiteFlower}
         alt=""
       />
 
       <img
         className="transition-sticker sticker-eye"
-        src="/media/evil-eye.png"
+        src={MEDIA.stickers.evilEye}
         alt=""
       />
 
       <img
         className="transition-sticker sticker-rose"
-        src="/media/rose.png"
+        src={MEDIA.stickers.rose}
         alt=""
       />
     </div>
@@ -678,44 +733,34 @@ function App() {
 
       <img
         className="birthday-template"
-        src="/media/template.jpeg"
+        src={MEDIA.template}
         alt="Birthday scrapbook"
       />
 
-      <div className="birthday-photo photo-1">
-        <img
-          src="/media/Image1.jpeg"
-          alt=""
-        />
-      </div>
-
-      <div className="birthday-photo photo-2">
-        <img
-          src="/media/Image2.jpeg"
-          alt=""
-        />
-      </div>
-
-      <div className="birthday-photo photo-3">
-        <img
-          src="/media/Image3.jpeg"
-          alt=""
-        />
-      </div>
-
-      <div className="birthday-photo photo-4">
-        <img
-          src="/media/Image4.jpeg"
-          alt=""
-        />
-      </div>
-
-      <div className="birthday-photo photo-5">
-        <img
-          src="/media/Image5.jpeg"
-          alt=""
-        />
-      </div>
+      {MEDIA.photos.length > 0 &&
+        Array.from(
+          { length: SCRAPBOOK_SLOTS },
+          (_, slotIndex) => (
+            <div
+              className={`birthday-photo photo-${
+                slotIndex + 1
+              }`}
+              key={slotIndex}
+            >
+              <img
+                src={
+                  MEDIA.photos[
+                    photoIndices[slotIndex]
+                  ]
+                }
+                alt=""
+                onError={() =>
+                  handlePhotoError(slotIndex)
+                }
+              />
+            </div>
+          )
+        )}
 
     </div>
 
@@ -752,7 +797,7 @@ function App() {
         </span>
 
         <span className="date">
-          22 · 08 · 2026
+          17 · 08 · 2026
         </span>
 
       </nav>
@@ -839,7 +884,12 @@ function App() {
           MUSIC
       ===================================================== */}
 
-      <section className="music-section">
+      <section
+        className="music-section"
+        style={{
+          '--media-sky': `url('${MEDIA.sky}')`,
+        }}
+      >
 
         {/* PLAYLIST */}
 
@@ -942,8 +992,8 @@ function App() {
           <div className="player-cover">
 
             <img
-              src="/media/dimple-cover.jpeg"
-              alt="Dimple"
+              src={MEDIA.cover}
+              alt=""
             />
 
           </div>
@@ -1131,7 +1181,7 @@ function App() {
                   </span>
 
                   <small>
-                    Add photo{' '}
+                    Add photo{''}
                     {memory.number}
                   </small>
 
